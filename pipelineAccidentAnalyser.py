@@ -98,7 +98,7 @@ class CrudePipeLineAnalysis():
         print('**********the first few rows of the df **********')
         print('\n \n ***********************************************************')
         #print('Do you wish to remove rows with any Nans present')
-        df.head(100)
+        df.head(10)
 
         # possibly drop the NaNs if they exis (and return in a copied df )  - or ask user if he/she wishes to do this in a custom way themselves
         return True
@@ -116,10 +116,6 @@ class CrudePipeLineAnalysis():
         This function reads in the data spits out high level lstructure and information - like high level descriptive stats on the data as weell as giving the user an option for returning a 'cleaned'
         version of the data as well as the original back. Such cleaning will include checking for NaN values and removing the columns which contain them
         
-        and loads the files with info on each round and course, plus the course's terrain data.
-        It stores them in their respective Golfer() member functions
-
-
         output/return value :
 
         option for returning a 'cleaned'
@@ -156,7 +152,7 @@ class CrudePipeLineAnalysis():
         # possibly drop the NaNs if they exis (and return in a copied df )  - or ask user if he/she wishes to do this in a custom way themselves
 
 
-        return self.cleaned_dat
+        return self.cleaned_data
 
     # function to create a heatmap of the correlations between columns in a dataframe:
     # #compute correlations of all columns in dataframe and display correlation heatmap !:
@@ -165,17 +161,18 @@ class CrudePipeLineAnalysis():
         """
         PARAMETERS:
 
-        df
+        df - input dataframe
 
         Purpose :
 
-        This function read in and loads the files with info on each round and course, plus the course's terrain data.
-        It stores them in their respective Golfer() member functions
+        This function read in the dataframe and calculates the full cross - correlation between \
+             all rows and columns that are not NaaN and are numeric
 
 
         outpur/return value :
 
         Boolean indicating success or not.
+        Also , of course plots the heat map of the correlation to the screen - notebook etc.
 
         """
 
@@ -192,24 +189,24 @@ class CrudePipeLineAnalysis():
             annot_kws = { 'fontsize' : 12 }
         ); 
 
+        return True
+
 
     def density_mix(self, dense_1,dense_2, percent_1 ):
         """
         PARAMETERS:
 
-         round_file,
-         terrain_file,
-         course_info_file
-
+        dense_1 : liquid 1 density
+        dense_2 : liquid 2 density
+        percent_1 : liquid 1's pecentage volume of the full 2-liquid mixture 
+        
         Purpose :
 
-        This function read in and loads the files with info on each round and course, plus the course's terrain data.
-        It stores them in their respective Golfer() member functions
-
+        This function calculates the desity of the liquid mixture from its 2 separate individual ones.
 
         outpur/return value :
 
-        Boolean indicating success or not.
+        The final mixed density (float)
 
         """
 
@@ -217,76 +214,100 @@ class CrudePipeLineAnalysis():
         simple_dense_mix = (dense_1 + dense_2) / 2.0
 
         if percent_1 == 1.0 and dense_1 == 0.0:
+            print('Division by zero encountered , please fix ...for now returning simple arithmetic average of the 2 densities')
             return simple_dense_mix
 
         elif dense_1 == dense_2 == 0.0:
             return simple_dense_mix    
         else:
-            density_mix = 2*(dense_1*dense_2)/ ( (percent_1 * dense_1) + ((1- percent_1) * dense_2) )
+            try:
+                density_mix = 2*(dense_1*dense_2)/ ( (percent_1 * dense_1) + ((1- percent_1) * dense_2) )
+            except ZeroDivisionError:
+                print("Division by zero encountered , please fix ...for now returning simple arithmetic average of the 2 densities") 
+                return simple_dense_mix   
 
 
         return density_mix
 
 
-    def time_cost_model_n_plot(self, df_1, remove_year=['2017'], group_by_column = 'Accident Year' ,headers = ['Accident Year','All Costs','Property Damage Costs',
+    def time_cost_model_n_plot(self, df_1, remove_year=[2017], group_by_column = 'Accident Year' ,headers = ['Accident Year','All Costs','Property Damage Costs',
             'Other Costs'] ):
+        """
+        PARAMETERS:
 
-        #headers = ['Accident Year','All Costs','Property Damage Costs',
-        #    'Lost Commodity Costs','Public/Private Property Damage Costs',
-        #    'Emergency Response Costs','Environmental Remediation Costs', 'Other Costs']
+        df_1            = inputted  dataframe
+        remove_year     = list of column values to exclude from the plot
+        group_by_column = What column to do the group by function with
+        headers         = what way to internally filer the DF - columnwise
+
+        Purpose :
+
+        This function process the dataframe internally and plots a grouped by function done against the All-Costs columns.
+
+        outpur/return value :
+
+        return value of eheter it was successfully ompleted or not
+
+        """
+
         df_reduced = df_1[headers]
-        for i in range(len(remove_year  )):
-            df_reduced = df_reduced[df_reduced['Accident Year'] != remove_year[i]] # and 'Accident Year'] != 2010 ]
+        for i in range(len(remove_year)):
+            try:
+                df_reduced = df_reduced[df_reduced[group_by_column] != remove_year[i]]
+            except KeyError:
+                print('Error in trying to access the key in the vqariable group_by_column within the dataframe , please fix ..') 
+                return False   
+            #df_reduced = df_reduced[df_reduced['Accident Year'] != remove_year[1]]
+        self.cleaned_data = df_reduced
         per_year = df_reduced.groupby(group_by_column)
 
+    
         indices = per_year.sum()['All Costs'].index.values
         yAll_sum = per_year.sum()['All Costs'].values
 
+        f, a = plt.subplots( nrows=1, ncols=1,figsize=(13,5))
+        #nrows=1, ncols=1,
+        a.fill_between(indices, yAll_sum, 10E0, facecolor='black', alpha=0.1)
 
-        f, a = plt.subplots(nrows=1, ncols=2, figsize=(13,5))
-
-        a[0].fill_between(indices, yAll_sum, 10E0, facecolor='black', alpha=0.1)
-
-        a[0].get_xaxis().get_major_formatter().set_useOffset(False)
-        a[0].set_xlabel('Year', fontsize=16)
-        a[0].set_ylabel('Sum Cost ($Million)', fontsize=16)
-        a[0].legend()
-
+        a.get_xaxis().get_major_formatter().set_useOffset(False)
+        a.set_xlabel('Year', fontsize=16)
+        a.set_ylabel('Sum Cost ($Million)', fontsize=16)
+        a.legend()
+        #a.show()
 
         return True
-
-
 
         
 
 if __name__  == '__main__':
     
-    import os
+    # just a local pre-test of the functions
 
-    Oilpipeline_1 = CrudePipeLineAnalysis()
+    # import os
 
-
-    os.chdir('C:/Users/MaaD/coding_projects/kaggle/oil_pipeline_accidents')
-    cwd = os.getcwd()
-    data_file = gwd + '/' + 'database.csv'
-
-    try:
-        data = pd.read_csv(data_file)
-    except FileNotFoundError as e:
-        print("Excel file not found " + str(e) + ' -- please ensure The file is in your current working directory, now exiting program...')
-        #return False
-
-    except IOError as e:
-        print("invalid data format encountered in file " + str(e) + ' -- please ensure The file content is in the corre3ct format, now exiting program...')
-        #return False
-
-    except Exception as err:
-        print('Specific error is : ' + str(err))
-        #return False
+    # Oilpipeline_1 = CrudePipeLineAnalysis()
 
 
-    pd.set_option("display.max_columns", None)
+    # os.chdir('C:/Users/MaaD/coding_projects/kaggle/oil_pipeline_accidents')
+    # cwd = os.getcwd()
+    # data_file = cwd + '/' + 'database.csv'
 
-    Oilpipeline_1.time_cost_model_n_plot(data)
+    # try:
+    #     data = pd.read_csv(data_file)
+    # except FileNotFoundError as e:
+    #     print("Excel file not found " + str(e) + ' -- please ensure The file is in your current working directory, now exiting program...')
+    #     #return False
 
-    chech = -1
+    # except IOError as e:
+    #     print("invalid data format encountered in file " + str(e) + ' -- please ensure The file content is in the corre3ct format, now exiting program...')
+    #     #return False
+
+    # except Exception as err:
+    #     print('Specific error is : ' + str(err))
+    #     #return False
+
+
+    # pd.set_option("display.max_columns", None)
+
+    # Oilpipeline_1.time_cost_model_n_plot(data, remove_year = ['2010','2017'])
+
