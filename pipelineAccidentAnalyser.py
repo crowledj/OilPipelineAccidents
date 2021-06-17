@@ -43,7 +43,7 @@ class CrudePipeLineAnalysis():
 
         Purpose :
 
-        This function reads in the data spits out high level lstructure and information - like high level descriptive stats on the data as weell as giving the user an option for returning a 'cleaned'
+        This function reads in the data spits out high level structure and information - like high level descriptive stats on the data as weell as giving the user an option for returning a 'cleaned'
         version of the data as well as the original back. Such cleaning will include checking for NaN values and removing the columns which contain them
         
         and loads the files with info on each round and course, plus the course's terrain data.
@@ -65,7 +65,7 @@ class CrudePipeLineAnalysis():
 
         # Check dimensions of DF
         print('\n \n ***********************************************************')
-        print('The dimansions of the tabular data are :' + str(df.shape))
+        print('The dimensions of the tabular data are :' + str(df.shape))
         print('\n \n ***********************************************************')
         
         # display the Summary statistics of the DF...
@@ -95,7 +95,7 @@ class CrudePipeLineAnalysis():
 
         # display the first few rows of the df
         print('\n \n ***********************************************************')
-        print('**********the first few rows of the df **********')
+        print('**********the first few rows of the df are  **********')
         print('\n \n ***********************************************************')
         #print('Do you wish to remove rows with any Nans present')
         df.head(10)
@@ -261,7 +261,6 @@ class CrudePipeLineAnalysis():
         self.cleaned_data = df_reduced
         per_year = df_reduced.groupby(group_by_column)
 
-    
         indices = per_year.sum()['All Costs'].index.values
         yAll_sum = per_year.sum()['All Costs'].values
 
