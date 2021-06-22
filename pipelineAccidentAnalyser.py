@@ -261,8 +261,8 @@ class CrudePipeLineAnalysis():
         self.cleaned_data = df_reduced
         per_year = df_reduced.groupby(group_by_column)
 
-        indices = per_year.sum()['All Costs'].index.values
-        yAll_sum = per_year.sum()['All Costs'].values
+        indices = per_year.sum()['All Costs'].index.values;
+        yAll_sum = per_year.sum()['All Costs'].values;
 
         f, a = plt.subplots( nrows=1, ncols=1,figsize=(13,5))
         #nrows=1, ncols=1,
@@ -284,7 +284,7 @@ if __name__  == '__main__':
 
     # import os
 
-    # Oilpipeline_1 = CrudePipeLineAnalysis()
+    Oilpipeline_1 = CrudePipeLineAnalysis()
 
 
     # os.chdir('C:/Users/MaaD/coding_projects/kaggle/oil_pipeline_accidents')
